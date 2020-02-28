@@ -1,0 +1,1 @@
+﻿Using log scale can present the trend of earthquake more clearly.When data are in a big range or we want to discuss the trend, no linear scales will be more suitable. Linear scale will make data points too dense which makes us hard to make conclusion.

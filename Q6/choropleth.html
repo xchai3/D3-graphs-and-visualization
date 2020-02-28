@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.counties {
+  fill: none;["Tot
+}
+
+.states {
+  fill: none;
+  stroke: #fff;
+  stroke-linejoin: round;
+}
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}
+</style>
+<svg width="960" height="100"></svg>
+<script src="../lib/d3.v5.min.js"></script>
+<script src="../lib/d3-scale-chromatic.v1.min.js"></script>
+<script src="../lib/topojson.v2.min.js"></script>
+<script src="../lib/d3-tip.min.js"></script>
+<script>
+
+//
+var tip = d3.tip()
+  .attr('class', 'd3-tip')
+   .style("opacity",0)
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-width", "2px")
+    .style("border-radius", "10px")
+    // .style("padding", "1px")
+  .offset([0, 15])
+  .html(function(d) {
+    //
+    var state=d.properties.name;
+    var reg=region.get(state);
+    var num=earthquakes.get(state);
+    return"<p>State: "+state+"<br>"+"Region: "+reg+"<br>"+"Earthquake: "+num+"</p>"
+   
+  })
+
+var margin = {top: 50, right: 50, bottom: 20, left: 90},
+    width = window.innerWidth - margin.left - margin.right,
+    height = window.innerHeight - margin.top - margin.bottom;
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+svg.call(tip);
+//var unemployment = d3.map();//
+// region 
+var region=d3.map(); // 
+var earthquakes=d3.map();   // 
+console.log(region);
+console.log(earthquakes);
+
+//earth quake  
+
+var path = d3.geoPath().projection(d3.geoAlbersUsa());
+
+
+ var colors2=['#fff5eb',
+'#fee6ce',
+'#fdd0a2',
+'#fdae6b',
+'#fd8d3c',
+'#f16913',
+'#d94801',
+'#a63603',
+'#7f2704'];
+var data=[];
+var max=0;
+var promises = [
+  d3.json("states-10m.json"),
+  d3.csv("state-earthquakes.csv", function(d) {
+d["Total Earthquakes"]=+d["Total Earthquakes"]
+var temp1=d["Total Earthquakes"]
+if(temp1>max){
+  max=temp1;
+}
+if(temp1==0){
+  temp1=temp1+1;
+}
+data.push(temp1); // collect all the count.
+region.set(d.States,d.Region)  //
+earthquakes.set(d.States,d["Total Earthquakes"])
+
+
+   })
+  //eathquke for count
+  //region for region
+]
+console.log(data);
+
+
+console
+Promise.all(promises).then(ready)
+
+
+
+
+function ready([us]) {
+// log scale
+var ScalesL=d3.scaleLog().domain([1,max])
+.range([1e-1,max]);
+console.log(ScalesL(200));
+
+console.log(ScalesL(100));
+var scaleQ=d3.scaleLinear().domain([1,1000]).range(0,200);
+console.log(max);// checked 9020
+// log scale all the count number:
+var datalog=[];
+// var temp3=ScalesL(100);
+//console.log(temp3);
+
+data.forEach(function(d){
+  var temp2=ScalesL(d);
+  datalog.push(temp2);
+}
+)
+
+
+console.log(datalog);
+
+//   var min = d3.min(datalog, function(d){return d;}),
+//   Max= d3.max(datalog, function(d){return d;}),
+//   gap= Math.floor((max-min)/9);
+
+// var colorscale = d3.scaleLinear().range(colors2)
+// .domain(d3.range(min,Max,gap));
+
+var stand=[1,5,10,40,80,100,200,500,1000];
+console.log(stand[0]);
+console.log(ScalesL(stand[0]));
+var colorscale2=d3.scaleThreshold().domain([ScalesL(stand[0]),ScalesL(stand[1]),ScalesL(stand[2]),ScalesL(stand[3]), ScalesL(stand[4]),ScalesL(stand[5]),ScalesL(stand[6]),ScalesL(stand[7]),ScalesL(stand[8])]).range(colors2);
+//color scale
+//console.log(data);
+// console.log(data.region);
+
+  svg.append("g")
+      .attr("class", "counties")
+    .selectAll("path")
+    .data(topojson.feature(us, us.objects.states).features)
+    .enter().append("path")
+     .style("stroke", "white")
+      // .attr("fill", function(d) { return "orange"; })
+    .style("fill",function(d){
+        var value=earthquakes.get(d.properties.name)
+        return colorscale2(ScalesL(value));
+      })
+      .attr("d", path)
+          // .on('mouseover',tip.show
+            // )
+      .on('mouseover',function(d){
+        tip.show(d,this);
+        d3.select(this).style("fill","grey");
+      }
+
+        )
+      .on('mouseout',function(d){
+       tip.hide(d,this);
+       d3.select(this).
+       style("fill",function(d){
+        var value=earthquakes.get(d.properties.name)
+        return colorscale2(ScalesL(value));
+      })
+
+      }
+
+        )
+ // test      
+
+ svg.append("text")             
+      .attr("transform",
+            "translate(" + (width/1.35) + " ," + 
+                           (height/30 + margin.top ) + ")")
+      .attr("font-size","20px")
+      .style("text-anchor", "middle")
+      .text("Earthquake Frequency");
+
+
+//.  
+var lineLegend = svg.selectAll(".lineLegend").data(stand)
+    .enter().append("g")
+    .attr("class","lineLegend")
+    .attr("transform", function (d,i) {
+            return "translate(" + width/1.4 + "," + (i*25)+")";
+        });
+
+lineLegend.append("text").text(function (d) {return d;})
+    .attr("transform", "translate(35,135)"); //align texts with boxes
+
+// for every little square
+lineLegend.append("rect")
+    .attr("fill", function (d,i) {
+      return colors2[i];
+        })
+    .attr("width", 20).attr("height", 20)
+    .attr("transform", "translate(15,120)"); ;
+ 
+
+}
+
+</script>

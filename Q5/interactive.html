@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script src="../lib/d3.v5.min.js"></script>
+<style type="text/css">
+/* 13. Basic Styling with CSS */
+
+/* Style the lines by removing the fill and applying a stroke */
+.line {
+    fill: none;
+    stroke: #ffab00;
+    stroke-width: 3;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+/* Style the dots by assigning a fill and stroke */
+.dot {
+    fill: #ffab00;
+    stroke: #fff;
+}
+
+  .focus circle {
+  fill: none;
+  stroke: steelblue;
+}
+.grid line {
+  stroke: lightgrey;
+  stroke-opacity: 0.5;
+  shape-rendering: crispEdges;
+}
+
+.grid path {
+  stroke-width: 0;
+}
+
+</style>
+<!-- Body tag is where we will append our SVG and SVG objects-->
+<body>
+</body>
+<script>
+var formatYear = d3.timeParse("%Y"); //format year //
+d3.csv("state-year-earthquakes.csv").then(function(data) {
+    data.forEach(function(d) { 
+        d.state=d.state;
+        d.region=d.region;
+        d.year= formatYear(d.year);
+        d.count=+d.count;
+   });
+// south store all the data,cs is a counter, xs store the counts for every year;
+var south=[],xs=[],cs=0;
+var north=[],xn=[],cn=0;
+var Mwest=[],xm=[],cm=0;
+var west=[],xw=[],cw=0;
+
+var nest = d3.nest()
+.key(function(d) { return d.year; })
+.entries(data);
+// console.log(nest);  // arrage by key， check and correct
+
+var Syear= nest.map(function(d){return d.key;});// all keys for year, check and correct
+console.log(Syear); // 6 year keys.  // y-axis for the plot
+// console.log(Syear[0]);
+// console.log(Syear[1]);
+// select_year2=nest.find(function(d){
+// return d.key==Syear[1];
+// });
+// console.log(select_year2.values);
+var v=2010;
+for(var i=0;i<=5;i++){
+var cs=0,cn=0,cm=0,cw=0;
+select_year=nest.find(function(d){
+return d.key==Syear[i];
+});
+console.log(select_year);  
+var all_region=select_year.values; // all data for a whole year 
+console.log(all_region);  
+all_region.forEach(function(d){
+if(d.region=="South"){
+south.push(d);
+cs=cs+d.count;
+console.log(cs);
+}
+if(d.region=="West"){
+west.push(d);
+cw=cw+d.count;
+}
+if(d.region=="Northeast"){
+north.push(d);
+cn=cn+d.count;
+}
+if(d.region=="Midwest"){
+Mwest.push(d);
+cm=cm+d.count;
+}
+
+})
+
+var objectM={
+year:formatYear(v),
+count:+cm
+};
+var objectN={
+year:formatYear(v),
+count:cn
+};
+var objectS={
+year:formatYear(v),
+count:cs
+};
+var objectW={
+year:formatYear(v),
+count:cw
+};
+v=v+1;
+console.log(v);
+// console.log(cs);
+xm.push(objectM);
+xn.push(objectN);
+xs.push(objectS);
+xw.push(objectW);
+}
+console.log(Mwest);
+// console.log(xw);
+// console.log(xn);
+// console.log(xs);
+// console.log(xm);
+
+var margin = {top: 50, left: 60, bottom: 20, right: 130};
+var margin2 = {top: 80, left: 80, bottom: 80, right: 50};
+var width =  900 - margin.left - margin.right;
+var width2 = 900 - margin2.left - margin2.right;
+var height = 400 - margin.top - margin.bottom;
+var height2= 500 - margin2.top - margin2.bottom;
+//xscale and yscale 
+var xscale = d3.scaleTime().domain([
+d3.min(xm, function(j) { return j.year; }),
+d3.max(xm, function(j) { return j.year; }) ]).range([0, width-10]);
+// xscale=d3.scaleLinear().domain([2010,2015]).range([0,width]);
+var yscale=d3.scaleLinear().domain([0,
+d3.max(xw, function(d) { return d.count; }) ])
+.range([height,0]);  
+
+//d3 line generator
+console.log(xm);
+var line1 = d3.line()
+    .x(function(d) { return xscale(d.year); }) // set the x values for the line generator
+    .y(function(d) { return yscale(d.count); })
+    //.curve(d3.curveMonotoneX); 
+    ; 
+    //console.log(line1); 
+
+
+//create SVG
+var svg1 = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// var svg2 = d3.select("body").append("svg")
+//     .attr("class","showmouse")
+//     .attr("width", width + margin2.left + margin2.right)
+//     .attr("height", height2 + margin2.top + margin2.bottom)
+//     .append("g")
+//     .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
+
+// add the lines and points
+    svg1.append("path")
+    .datum(xm) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'red') 
+    .attr("d", line1); // 11. Calls the line generator 
+    
+    svg1.append("text").attr("class", "in title").attr("x", width/3).attr("y",-5).text("US Earthquakes by region 2010-2015 ");
+    
+     svg1.selectAll("line-circle")
+    .data(xm)
+     .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xscale(d.year) })
+    .attr("cy", function(d) { return yscale(d.count) })
+    .style("fill",'red') 
+    .attr("r", 5)
+    .on("mouseover",function(d){
+        d3.select(this).attr("r",20);
+        // add plot function
+        drawbar(d.year,"Midwest");
+        
+    })
+    .on("mouseout",function(d){
+        d3.select(this).attr("r",5);
+        d3.selectAll(".showmouse")
+        .remove();
+    })
+    ;
+    
+    
+    
+    svg1.append("path")
+    .datum(xn) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'blue') 
+    .attr("d", line1); // 11. Calls the line generator 
+    
+    svg1.selectAll("line-circle")
+    .data(xn)
+     .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xscale(d.year) })
+    .attr("cy", function(d) { return yscale(d.count) })
+    .style("fill",'blue') 
+    .attr("r", 5)
+      .on("mouseover",function(d){
+        d3.select(this).attr("r",20);
+        // add plot function
+        drawbar(d.year,"Northeast");
+        
+    })
+    .on("mouseout",function(d){
+        d3.select(this).attr("r",5);
+        d3.selectAll(".showmouse")
+        .remove();
+    })
+    ;
+    
+    
+    
+    svg1.append("path")
+    .datum(xs) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'green') 
+    .attr("d", line1); // 11. Calls the line generator 
+    
+    svg1.selectAll("line-circle")
+    .data(xs)
+     .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xscale(d.year) })
+    .attr("cy", function(d) { return yscale(d.count) })
+    .style("fill",'green') 
+    .attr("r", 5)
+      .on("mouseover",function(d){
+        d3.select(this).attr("r",20);
+        // add plot function
+        drawbar(d.year,"South");
+        
+    })
+    .on("mouseout",function(d){
+        d3.select(this).attr("r",5);
+        d3.selectAll(".showmouse")
+        .remove();
+    });
+    
+    
+    
+    svg1.append("path")
+    .datum(xw) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'orange') 
+    .attr("d", line1); // 11. Calls the line generator 
+    
+    svg1.selectAll("line-circle")
+    .data(xw)
+     .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xscale(d.year) })
+    .attr("cy", function(d) { return yscale(d.count) })
+    .style("fill",'orange') 
+    .attr("r", 5)
+      .on("mouseover",function(d){
+        d3.select(this).attr("r",20);
+        // add plot function
+        drawbar(d.year,"West");
+        
+    })
+    .on("mouseout",function(d){
+        d3.select(this).attr("r",5);
+        d3.selectAll(".showmouse")
+        .remove();
+    })
+    ;
+
+       
+       
+
+
+
+
+//Call the x axis in a group tag
+svg1.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(xscale));// Create an axis component with d3.axisBottom
+//  svg1.append("text")             
+//       .attr("transform",
+//             "translate(" + (width/2) + " ," + 
+//                            (height + margin.top ) + ")")
+//       .style("text-anchor", "middle")
+//       .text("Year");
+// 4. Call the y axis in a group tag
+svg1.append("g")
+    .attr("class", "y axis")
+    .call(d3.axisLeft(yscale)); // Create an axis component with d3.axisLeft
+  svg1.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Num of Earthquakes");  
+  
+  
+  //  add legend
+var legend_keys = ["South", "West", "Northeast","Midwest"];
+var lineLegend = svg1.selectAll(".lineLegend").data(legend_keys)
+    .enter().append("g")
+    .attr("class","lineLegend")
+    .attr("transform", function (d,i) {
+            return "translate(" + width + "," + (i*20)+")";
+        });
+
+lineLegend.append("text").text(function (d) {return d;})
+    .attr("transform", "translate(15,9)"); //align texts with boxes
+
+lineLegend.append("rect")
+    .attr("fill", function (d) {
+        if(d=="South")
+        return "green";
+        if(d=="West")
+        return 'orange';
+        if(d=="Northeast")
+        return 'blue';
+        if(d=="Midwest")
+        return 'red';
+        })
+    .attr("width", 10).attr("height", 10);    
+    
+// finish sitting the legend
+     
+//drawbar("2014","South");   
+function drawbar(Year,region){
+var svg2 = d3.select("body").append("svg")
+    .attr("class","showmouse")
+    .attr("width", width + margin2.left + margin2.right)
+    .attr("height", height2 + margin2.top + margin2.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
+
+svg2.append("text").attr("class", "in title").attr("x", width/2.5).attr("y",-15).text( region+ "ern Region Earthquakes "+Year.getFullYear());
+ 
+var orgin=[];
+var y_name=[];
+var plotxy=[];// set x-y axis for the bar
+if(region=="South"){
+orgin=south;
+}
+if(region=="West"){
+orgin=west;
+}
+if(region=="Northeast"){
+orgin=north;
+}
+if(region=="Midwest"){
+orgin=Mwest;
+}
+console.log(orgin);
+var count2=0;
+orgin.forEach(function(d){
+//year2=formatYear(Year);
+//console.log(year2);
+//
+console.log(d.year);
+if(d.year-Year==0){  // 
+ var object2={
+ state: d.state,
+ count:+d.count
+};
+y_name.push(d.state);
+//count2=count2+1;
+
+plotxy.push(object2);
+}
+})
+for(var i =0;i<plotxy.length;i++)
+{
+for(var j=i+1;j<plotxy.length;j++){
+if(plotxy[i].count<plotxy[j].count){
+var temp=plotxy[i];
+plotxy[i]=plotxy[j];
+plotxy[j]=temp;
+var temp2=y_name[i];
+y_name[i]=y_name[j];
+y_name[j]=temp2;
+}
+}
+}
+console.log(plotxy); // check
+console.log(y_name);
+// console.log(count2); // how many countrys in this region in this year;
+var xScale = d3.scaleLinear()
+      .domain([d3.min(plotxy,function(j){return j.count;}),
+      d3.max(plotxy,function(j) {return j.count;})] )  
+      .range([0, width]);
+      
+//add grid
+svg2.append("g")			
+      .attr("class", "grid")
+      .attr("transform", "translate(0," + height + ")")
+      .call(make_x_gridlines()
+          .tickSize(-height)
+          .tickFormat("")
+      )
+;
+
+var yScale=d3.scaleBand().range([0,height]).domain(y_name);
+
+ svg2.selectAll("bar")
+      .data(plotxy)
+    .enter().append("rect")
+      .style("fill", "steelblue")
+      .attr("x", 0)
+      .attr("width",function(d){return xScale(d.count)})
+      .attr("y", function(d) { return yScale(d.state); })
+      .attr("height", yScale.bandwidth()-10);
+      
+       svg2.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height+ ")")
+      .call(d3.axisBottom(xScale));
+//       svg2.append("text")             
+//       .attr("transform",
+//             "translate(" + (width/2) + " ," + 
+//                            (height + margin.top ) + ")")
+//       .style("text-anchor", "middle")
+//       .text("counts");
+      
+      
+      // set y-axis 
+var yaxis= svg2.append("g")
+.transition()
+.duration(50)
+.attr("class","y axis")
+.transition()
+.attr("transform","translate(0," +(-5) +")")
+.call(d3.axisLeft(yScale));
+ svg2.append("g")			
+      .attr("class", "grid")
+      .attr("transform", "translate(0," + height + ")")
+      .call(make_x_gridlines()
+          .tickSize(-height)
+          .tickFormat("")
+      )
+
+
+function make_x_gridlines() {		
+    return d3.axisBottom(xScale)
+        .ticks(9)
+}
+
+ }
+      
+
+
+});
+
+
+
+
+
+
+
+
+
+
+</script>

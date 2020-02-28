@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script src="../lib/d3.v5.min.js"></script>
+<style type="text/css">
+/* 13. Basic Styling with CSS */
+
+/* Style the lines by removing the fill and applying a stroke */
+.line {
+    fill: none;
+    stroke: #ffab00;
+    stroke-width: 3;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+/* Style the dots by assigning a fill and stroke */
+.dot {
+    fill: #ffab00;
+    stroke: #fff;
+}
+
+  .focus circle {
+  fill: none;
+  stroke: steelblue;
+}
+
+</style>
+<!-- Body tag is where we will append our SVG and SVG objects-->
+<body>
+</body>
+<script>
+var formatYear = d3.timeParse("%Y"); //format year //
+//var pointRadius = 9;
+
+d3.csv("earthquakes.csv").then(function(data) {
+    data.forEach(function(d) { 
+        d.year= formatYear(d.year);
+        d["8.0+"] =+d["8.0+"];
+        d["7_7.9"]=+d["7_7.9"];
+        d["6_6.9"]=+d["6_6.9"];
+        d["5_5.9"]=+d["5_5.9"];
+        d["Estimated Deaths"]=+d["Estimated Deaths"];
+
+   });
+//  console.log(data); // get the data// get the data
+
+var margin = {top: 50, left: 70, bottom: 80, right: 130};
+var width = 1000 - margin.left - margin.right;
+var height = 600 - margin.top - margin.bottom;
+
+    
+//xscale and yscale
+var xScale = d3.scaleTime()  .domain([
+d3.min(data, function(d) { return d.year; }),
+d3.max(data, function(d) { return d.year; }) ])
+               .range([0, width]);  
+var yScale=d3.scaleLinear().domain([0,
+d3.max(data, function(d) { return d["5_5.9"]; }) ])
+.range([height,0]);
+
+
+
+// C1
+var yScalesroot=d3.scaleSqrt().domain([0,
+d3.max(data, function(d) { return d["5_5.9"]; }) ])
+.range([height,0]);
+// C2
+var yScalesL=d3.scaleLog().domain([1,
+d3.max(data, function(d) { return d["5_5.9"]; }) ])
+.range([height,0]);
+
+
+//
+var yScalesL2=d3.scaleLog().domain([1,
+1000 ])
+.range([0,2000]);
+console.log(yScalesL2(1000));
+
+//
+console.log(yScale(1000));
+console.log(xScale(formatYear(2010)));
+
+// 7. d3's line generator
+var line1 = d3.line()
+    .x(function(d) { return xScale(d.year); }) // set the x values for the line generator
+    .y(function(d) { return yScale(d["5_5.9"]); })
+    .curve(d3.curveMonotoneX); 
+    ; // set the y values for the line generator 
+
+var line1S = d3.line()
+    .x(function(d) { return xScale(d.year); }) // set the x values for the line generator
+    .y(function(d) { return yScalesroot(d["5_5.9"]); })
+    .curve(d3.curveMonotoneX); 
+    ; // set the y values for the line generator 
+var line1L = d3.line()
+    .x(function(d) { return xScale(d.year); }) // set the x values for the line generator
+    .y(function(d) { return yScalesL(d["5_5.9"]); })
+    .curve(d3.curveMonotoneX); 
+    ; // set the y values for the line generator 
+
+
+var line2 = d3.line()
+ .x(function(d) { return xScale(d.year); }) // set the x values for the line generator
+    .y(function(d) { return yScale(d["6_6.9"]); })
+    .curve(d3.curveMonotoneX); 
+    ;
+var line2S = d3.line()
+ .x(function(d) { return xScale(d.year); }) // set the x values for the line generator
+    .y(function(d) { return yScalesroot(d["6_6.9"]); })
+    .curve(d3.curveMonotoneX); 
+    ;
+var line2L = d3.line()
+ .x(function(d) { return xScale(d.year); }) // set the x values for the line generator
+    .y(function(d) { return yScalesL(d["6_6.9"]); })
+    .curve(d3.curveMonotoneX); 
+    ;
+
+var line3 = d3.line()
+ .x(function(d) { return xScale(d.year); }) // set the x values for the line generator
+    .y(function(d) { return yScale(d["7_7.9"]); })
+    .curve(d3.curveMonotoneX); 
+    ;
+var line3S = d3.line()
+ .x(function(d) { return xScale(d.year); }) // set the x values for the line generator
+    .y(function(d) { return yScalesroot(d["7_7.9"]); })
+    .curve(d3.curveMonotoneX); 
+    ;
+var line3L = d3.line()
+ .x(function(d) { return xScale(d.year); }) // set the x values for the line generator
+    .y(function(d) { return yScalesL(d["7_7.9"]); })
+    .curve(d3.curveMonotoneX); 
+    ;
+    
+var line4= d3.line()
+ .x(function(d) { return xScale(d.year); }) // set the x values for the line generator
+    .y(function(d) { return yScale(d["8.0+"]); })
+    .curve(d3.curveMonotoneX); 
+    ;
+var line4S= d3.line()
+ .x(function(d) { return xScale(d.year); }) // set the x values for the line generator
+    .y(function(d) { return yScalesroot(d["8.0+"]); })
+    .curve(d3.curveMonotoneX); 
+    ;
+   var line4L= d3.line()
+ .x(function(d) { return xScale(d.year); }) // set the x values for the line generator
+    .y(function(d) { 
+    if(d["8.0+"]>1)
+    return yScalesL(d["8.0+"]); 
+    else
+    return yScale(d["8.0+"]);
+    })
+    .curve(d3.curveMonotoneX); 
+    ;
+
+// 1. Add the SVG to the page and employ #2
+var svg1 = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+    
+
+// 9. Append the path, bind the data, and call the line generator 
+svg1.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#FFC300') 
+    .attr("d", line1); // 11. Calls the line generator 
+
+svg1.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#FF5733') 
+    .attr("d", line2); // 11. Calls the line generator 
+
+   
+
+
+svg1.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#C70039') 
+    .attr("d", line3);
+svg1.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#900C3F') 
+    .attr("d", line4);
+    
+    
+// 3. Call the x axis in a group tag
+svg1.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(xScale));// Create an axis component with d3.axisBottom
+ svg1.append("text")             
+      .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                           (height + margin.top ) + ")")
+      .style("text-anchor", "middle")
+      .text("Year");
+// 4. Call the y axis in a group tag
+svg1.append("g")
+    .attr("class", "y axis")
+    .call(d3.axisLeft(yScale)); // Create an axis component with d3.axisLeft
+  svg1.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Num of Earthquakes");   
+
+svg1.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle")  
+        .style("font-size", "20px") 
+        .text("Worldwide Earthquake stats 2000-2015");
+        
+// legend
+var legend_keys = ["5_5.9", "6_6.9", "7_7.9","8.0+"];
+var lineLegend = svg1.selectAll(".lineLegend").data(legend_keys)
+    .enter().append("g")
+    .attr("class","lineLegend")
+    .attr("transform", function (d,i) {
+            return "translate(" + width + "," + (i*20)+")";
+        });
+
+lineLegend.append("text").text(function (d) {return d;})
+    .attr("transform", "translate(15,9)"); //align texts with boxes
+
+lineLegend.append("rect")
+    .attr("fill", function (d) {
+        if(d=="5_5.9")
+        return "#FFC300";
+        if(d=="6_6.9")
+        return '#FF5733';
+        if(d=="7_7.9")
+        return '#C70039';
+        if(d=="8.0+")
+        return '#900C3F';
+        })
+    .attr("width", 10).attr("height", 10);
+
+// part b : plot pictures with symbol     
+
+    //add point to the plot
+ 
+   var svg2 = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+    
+
+// 9. Append the path, bind the data, and call the line generator 
+svg2.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#FFC300') 
+    .attr("d", line1); // 11. Calls the line generator 
+
+svg2.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#FF5733') 
+    .attr("d", line2); // 11. Calls the line generator 
+
+   
+
+
+svg2.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#C70039') 
+    .attr("d", line3);
+svg2.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#900C3F') 
+    .attr("d", line4);
+    
+    
+// 3. Call the x axis in a group tag
+svg2.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(xScale));// Create an axis component with d3.axisBottom
+ svg2.append("text")             
+      .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                           (height + margin.top ) + ")")
+      .style("text-anchor", "middle")
+      .text("Year");
+// 4. Call the y axis in a group tag
+svg2.append("g")
+    .attr("class", "y axis")
+    .call(d3.axisLeft(yScale)); // Create an axis component with d3.axisLeft
+  svg2.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Num of Earthquakes");   
+
+svg2.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle")  
+        .style("font-size", "20px") 
+        .text("Worldwide Earthquake stats 2000-2015 with symbols");
+        
+// legend
+var legend_keys = ["5_5.9", "6_6.9", "7_7.9","8.0+"];
+var lineLegend = svg2.selectAll(".lineLegend").data(legend_keys)
+    .enter().append("g")
+    .attr("class","lineLegend")
+    .attr("transform", function (d,i) {
+            return "translate(" + width + "," + (i*20)+")";
+        });
+
+lineLegend.append("text").text(function (d) {return d;})
+    .attr("transform", "translate(15,9)"); //align texts with boxes
+
+lineLegend.append("rect")
+    .attr("fill", function (d) {
+        if(d=="5_5.9")
+        return "#FFC300";
+        if(d=="6_6.9")
+        return '#FF5733';
+        if(d=="7_7.9")
+        return '#C70039';
+        if(d=="8.0+")
+        return '#900C3F';
+        })
+    .attr("width", 10).attr("height", 10); 
+ svg2.selectAll("line-circle")
+    .data(data)
+  .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xScale(d.year) })
+    .attr("cy", function(d) {  return yScale(d["5_5.9"]);})
+    .style("fill",'#FFC300')
+    .attr("r", function(d) {
+     var minRadius = 7;
+     return minRadius*d["5_5.9"]/d3.min(data, function(d) { return d["5_5.9"]; });
+   }
+   )  ;   
+   svg2.selectAll("line-circle")
+    .data(data)
+  .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xScale(d.year) })
+    .attr("cy", function(d) {  return yScale(d["6_6.9"]);})
+    .style("fill",'#FF5733')
+    .attr("r", function(d) {
+     var minRadius = 7;
+     return minRadius*d["6_6.9"]/d3.min(data, function(d) { return d["6_6.9"]; });
+   }
+   )  ;  
+   svg2.selectAll("line-circle")
+    .data(data)
+  .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xScale(d.year) })
+    .attr("cy", function(d) {  return yScale(d["7_7.9"]);})
+    .style("fill",'#C70039')
+    .attr("r", function(d) {
+     var minRadius = 7;
+     return minRadius*d["7_7.9"]/d3.min(data, function(d) { return d["7_7.9"]; });
+   }
+   )  ;   
+   svg2.selectAll("line-circle")
+    .data(data)
+  .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xScale(d.year) })
+    .attr("cy", function(d) {  return yScale(d["8.0+"]);})
+    .style("fill",'#900C3F')
+    .attr("r", function(d) {
+     var minRadius = 4;
+     return minRadius*d["8.0+"]
+   }
+   )  ; 
+   
+  // Q2 part C saqure root :
+      
+    
+    var svg3 = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+    
+
+// 9. Append the path, bind the data, and call the line generator 
+svg3.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#FFC300') 
+    .attr("d", line1S); // 11. Calls the line generator 
+
+svg3.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#FF5733') 
+    .attr("d", line2S); // 11. Calls the line generator 
+
+   
+
+
+svg3.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#C70039') 
+    .attr("d", line3S);
+svg3.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#900C3F') 
+    .attr("d", line4S);
+    
+    
+// 3. Call the x axis in a group tag
+svg3.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(xScale));// Create an axis component with d3.axisBottom
+ svg3.append("text")             
+      .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                           (height + margin.top ) + ")")
+      .style("text-anchor", "middle")
+      .text("Year");
+// 4. Call the y axis in a group tag
+svg3.append("g")
+    .attr("class", "y axis")
+    .call(d3.axisLeft(yScalesroot)); // Create an axis component with d3.axisLeft
+  svg3.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Num of Earthquakes");   
+
+svg3.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle")  
+        .style("font-size", "20px") 
+        .text("Worldwide Earthquake stats 2000-2015 square root scale");
+        
+// legend
+var legend_keys = ["5_5.9", "6_6.9", "7_7.9","8.0+"];
+var lineLegend = svg3.selectAll(".lineLegend").data(legend_keys)
+    .enter().append("g")
+    .attr("class","lineLegend") 
+    .attr("transform", function (d,i) {
+            return "translate(" + width + "," + (i*20)+")";
+        });
+
+lineLegend.append("text").text(function (d) {return d;})
+    .attr("transform", "translate(15,9)"); //align texts with boxes
+
+lineLegend.append("rect")
+    .attr("fill", function (d) {
+        if(d=="5_5.9")
+        return "#FFC300";
+        if(d=="6_6.9")
+        return '#FF5733';
+        if(d=="7_7.9")
+        return '#C70039';
+        if(d=="8.0+")
+        return '#900C3F';
+        })
+    .attr("width", 10).attr("height", 10); 
+ svg3.selectAll("line-circle")
+    .data(data)
+  .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xScale(d.year) })
+    .attr("cy", function(d) {  return yScalesroot(d["5_5.9"]);})
+    .style("fill",'#FFC300')
+    .attr("r", function(d) {
+     var minRadius = 7;
+     return minRadius*d["5_5.9"]/d3.min(data, function(d) { return d["5_5.9"]; });
+   }
+   )  ;   
+   svg3.selectAll("line-circle")
+    .data(data)
+  .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xScale(d.year) })
+    .attr("cy", function(d) {  return yScalesroot(d["6_6.9"]);})
+    .style("fill",'#FF5733')
+    .attr("r", function(d) {
+     var minRadius = 7;
+     return minRadius*d["6_6.9"]/d3.min(data, function(d) { return d["6_6.9"]; });
+   }
+   )  ;  
+   svg3.selectAll("line-circle")
+    .data(data)
+  .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xScale(d.year) })
+    .attr("cy", function(d) {  return yScalesroot(d["7_7.9"]);})
+    .style("fill",'#C70039')
+    .attr("r", function(d) {
+     var minRadius = 7;
+     return minRadius*d["7_7.9"]/d3.min(data, function(d) { return d["7_7.9"]; });
+   }
+   )  ;   
+   svg3.selectAll("line-circle")
+    .data(data)
+  .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xScale(d.year) })
+    .attr("cy", function(d) {  return yScalesroot(d["8.0+"]);})
+    .style("fill",'#900C3F')
+    .attr("r", function(d) {
+     var minRadius = 4;
+     return minRadius*d["8.0+"]
+   }
+   )  ; 
+   // Question 3 part C log:
+  var svg4 = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+    
+
+// 9. Append the path, bind the data, and call the line generator 
+svg4.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#FFC300') 
+    .attr("d", line1L); // 11. Calls the line generator 
+
+svg4.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#FF5733') 
+    .attr("d", line2L); // 11. Calls the line generator 
+
+   
+
+
+svg4.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#C70039') 
+    .attr("d", line3L);
+svg4.append("path")
+    .datum(data) // 10. Binds data to the line 
+    .attr("class", "line") // Assign a class for styling
+    .style("stroke",'#900C3F') 
+    .attr("d", line4L);
+    
+    
+// 3. Call the x axis in a group tag
+svg4.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(xScale));// Create an axis component with d3.axisBottom
+ svg4.append("text")             
+      .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                           (height + margin.top ) + ")")
+      .style("text-anchor", "middle")
+      .text("Year");
+// 4. Call the y axis in a group tag
+svg4.append("g")
+    .attr("class", "y axis")
+    .call(d3.axisLeft(yScalesL)); // Create an axis component with d3.axisLeft
+  svg4.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Num of Earthquakes");   
+
+svg4.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle")  
+        .style("font-size", "20px") 
+        .text("Worldwide Earthquake stats 2000-2015 log scale");
+        
+// legend
+var legend_keys = ["5_5.9", "6_6.9", "7_7.9","8.0+"];
+var lineLegend = svg4.selectAll(".lineLegend").data(legend_keys)
+    .enter().append("g")
+    .attr("class","lineLegend")
+    .attr("transform", function (d,i) {
+            return "translate(" + (width+10) + "," + (i*20)+")";
+        });
+
+lineLegend.append("text").text(function (d) {return d;})
+    .attr("transform", "translate(15,9)"); //align texts with boxes
+
+lineLegend.append("rect")
+    .attr("fill", function (d) {
+        if(d=="5_5.9")
+        return "#FFC300";
+        if(d=="6_6.9")
+        return '#FF5733';
+        if(d=="7_7.9")
+        return '#C70039';
+        if(d=="8.0+")
+        return '#900C3F';
+        })
+    .attr("width", 10).attr("height", 10); 
+ svg4.selectAll("line-circle")
+    .data(data)
+  .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xScale(d.year) })
+    .attr("cy", function(d) {  return yScalesL(d["5_5.9"]);})
+    .style("fill",'#FFC300')
+    .attr("r", function(d) {
+     var minRadius = 7;
+     return minRadius*d["5_5.9"]/d3.min(data, function(d) { return d["5_5.9"]; });
+   }
+   )  ;   
+   svg4.selectAll("line-circle")
+    .data(data)
+  .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xScale(d.year) })
+    .attr("cy", function(d) {  return yScalesL(d["6_6.9"]);})
+    .style("fill",'#FF5733')
+    .attr("r", function(d) {
+     var minRadius = 7;
+     return minRadius*d["6_6.9"]/d3.min(data, function(d) { return d["6_6.9"]; });
+   }
+   )  ;  
+   svg4.selectAll("line-circle")
+    .data(data)
+  .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xScale(d.year) })
+    .attr("cy", function(d) {  return yScalesL(d["7_7.9"]);})
+    .style("fill",'#C70039')
+    .attr("r", function(d) {
+     var minRadius = 7;
+     return minRadius*d["7_7.9"]/d3.min(data, function(d) { return d["7_7.9"]; });
+   }
+   )  ;   
+   svg4.selectAll("line-circle")
+    .data(data)
+  .enter().append("circle") // Uses the enter().append() method
+    .attr("class", "dot") // Assign a class for styling
+    .attr("cx", function(d) { return xScale(d.year) })
+    .attr("cy", function(d) {  
+    if(d["8.0+"]>1)
+    return yScalesL(d["8.0+"]);
+    else
+    return yScale(d["8.0+"]);
+    }
+    )
+    .style("fill",'#900C3F')
+    .attr("r", function(d) {
+     var minRadius = 4;
+     return minRadius*d["8.0+"]
+   }
+   )  ; 
+
+
+});
+
+</script>

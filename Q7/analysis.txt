@@ -1,0 +1,14 @@
+Cause I am not family with R ,I will compare Python , Tableau and D3.
+1.
+Among these options, I guess Tableau is the easiest way to do data visualization. D3 is more difficult, due to the syntax and the difference among d3 visions. Python is a middle option: people need to learn, but there are less rules.
+2. 
+If the code is organized, python and d3 are easy to maintain . Any modification can be made easily. However, I think Tableau is not that friendly, only recent vision Tableau support revision history.
+3. 
+All of them are great tool for end users. But it also depends on the purpose of end users. D3 is able to grab data from website, but. Tableau can not. Tableau is good for geospatial data
+4.
+Python: there are many tools such as hadoop and mpi for python to deal with large data. Python consists of a large well-tested libraries. 
+It will be my first choice.
+5.
+Python: can be run on OS or Browser
+Tableau: can be used on web or on a licensed software.
+D3: only use on Browser
